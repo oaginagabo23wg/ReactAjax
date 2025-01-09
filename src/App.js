@@ -5,29 +5,34 @@ import React, { useState } from "react";
 
 function App() {
   const [data, setData] = useState(null);
+  const [filteredData, setFilteredData] = useState([]);
+
 
   const handleRadioChange = async (value) => {
-    console.log(value);
-    try {
-      const response = await fetch('./espacios.php');
-      const text = await response.text();
-      try {
-        const result = JSON.parse(text);
-        setData(result);
-      } catch {
-        console.error("Json erantzuna ez da egokia: ", text);
-      }
-    }
-    catch (error) {
-      console.error('Zerbitzariari eskaeran errorea: ', error);
-    }
+    const letra = value[0];
+    fetch('/espacios-naturales.json') 
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Error al cargar el archivo JSON');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setData(data);
+        const filtrados = data.item.filter((item) =>
+          item.territory?.startsWith(letra)
+        );
+        setFilteredData(filtrados); 
+      })
+      .catch((error) => console.error('Error:', error));
+
   }
   console.log(data);
-
+  
   return (
     <div className="App">
       <Header />
-      <Main onRadioChange={handleRadioChange}/>
+      <Main onRadioChange={handleRadioChange} filteredData={filteredData} />
     </div>
   );
 }
